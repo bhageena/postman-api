@@ -23,3 +23,5 @@ packages:
       - name: create
         environment: $(POSTMAN_API_KEY)
         runtime: nodejs:10
+      - name: deploy
+        runtime: nodejs:10

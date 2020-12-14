@@ -4,7 +4,6 @@
   "description": "Create Nimbella Project",
   "main": "index.js",
   "dependencies": {
-    "generator": "file:./nimbella-plugin-postman-0.1.2.tgz",
     "shelljs": "^0.8.4"
   }
 }

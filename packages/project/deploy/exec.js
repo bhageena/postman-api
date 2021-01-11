@@ -5,7 +5,6 @@ async function main(args) {
     if (nim)
         exec('curl https://apigcp.nimbella.io/downloads/nim/nim-install-linux.sh | sudo bash')
 
-    const plugins = exec('nim plugins')   
     exec(`nim auth login ${args.nimbella_key}`)
     try {
         const cmd = `nim project create -t postman -i ${args.collection_id} -k ${args.postman_key} -d`

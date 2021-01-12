@@ -4,12 +4,11 @@
   "description": "Create & Deploy Nimbella Project",
   "main": "index.js",
   "dependencies": {
-    "@nimbella/postman-api": "0.0.0",
-    "nimbella-deployer": "https://preview-apigcp.nimbella.io/nimbella-deployer.tgz",
-    "rimraf": "^3.0.2"
+    "@nimbella/postman-api": "0.0.2",
+    "nimbella-deployer": "https://preview-apigcp.nimbella.io/nimbella-deployer.tgz"
   },
   "devDependencies": {
-    "@types/rimraf": "^3.0.0",
+    "@types/handlebars": "4.0.40",
     "ts-loader": "^6.2.1",
     "ts-node": "^8.10.1",
     "typescript": "^3.9.3"

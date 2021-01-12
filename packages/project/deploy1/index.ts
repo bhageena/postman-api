@@ -1,17 +1,12 @@
-// import { runNimCommand, CaptureLogger } from 'nimbella-cli'
-// import { initializeAPI, Flags, deployProject} from 'nimbella-cli/lib/deployer'
-import { initializeAPI, Flags, deployProject, readAndPrepare, fileSystemPersister, wipePackage, buildProject, deploy, getCurrentNamespace } from 'nimbella-deployer'
+import { initializeAPI, Flags, deployProject, readAndPrepare, fileSystemPersister, wipePackage, buildProject, deploy, getCurrentNamespace, Credentials, OWOptions } from 'nimbella-deployer'
 import { default as Generate } from '@nimbella/postman-api/lib/invoker'
-import { existsSync } from 'fs'
-import { removeDir } from 'rimraf'
+import { existsSync, rmdirSync } from 'fs'
 import { join, dirname } from 'path'
-// import Generate from 'nim-postman/lib/invoker';
 
 async function main(args: any) {
   try {
-
     await nimGenerate(args.collection_id, args.postman_key)
-    await nimDeploy(args.collection_id, args.postman_key, await getCurrentNamespace(fileSystemPersister))
+    await nimProjectDeploy(args.collection_id, args.nimbella_key, await getCurrentNamespace(fileSystemPersister))
   } catch (error) {
     console.error(error)
     return error
@@ -40,22 +35,36 @@ async function nimGenerate(collection_id: string, postman_key: string) {
 
 async function nimDeploy(collection_id: string, nim_auth_key: string, namespace: string) {
   const prepare: any = await readAndPrepare(
-    dirname(join(__dirname, collection_id, 'project.yml')),
+    dirname(join(process.cwd(), collection_id, 'project.yml')),
     {
     }, {
+    namespace: await getCurrentNamespace(fileSystemPersister),
     ow: {
       apihost: process.env.CREATE_WHISK_USER_DEFAULT_HOSTNAME,
-      api_key: nim_auth_key
-    }
+      api_key: nim_auth_key,
+    },
+    storageKey: undefined,
+    redis: false
   },
     fileSystemPersister,
-    {}, ""
+    {
+      verboseBuild: false,
+      verboseZip: false,
+      production: false,
+      incremental: false,
+      yarn: false,
+      env: undefined,
+      webLocal: undefined,
+      include: undefined,
+      exclude: undefined,
+      remoteBuild: false
+    }, ""
   );
 
   const build: any = await buildProject(prepare);
   if (!build) {
     Object.assign(process.env, { __OW_NAMESPACE: namespace });
-    existsSync(join(__dirname, collection_id)) && removeDir(join(__dirname, collection_id));
+    existsSync(join(process.cwd(), collection_id)) && rmdirSync(join(process.cwd(), collection_id), { recursive: true });
     throw new Error(`${collection_id} Couldn't build project.`);
   }
 
@@ -66,9 +75,38 @@ async function nimDeploy(collection_id: string, nim_auth_key: string, namespace:
     throw new Error(`${collection_id} Couldn't deploy.`);
   }
   Object.assign(process.env, { __OW_NAMESPACE: namespace });
-  if (collection_id && existsSync(join(__dirname, collection_id))) {
-    removeDir(join(__dirname, collection_id));
+  if (collection_id && existsSync(join(process.cwd(), collection_id))) {
+    rmdirSync(join(process.cwd(), collection_id), { recursive: true });
   }
 }
 
+async function nimProjectDeploy(collection_id: string, nim_auth_key: string, namespace: string) {
+  const projPath = join(process.cwd(), collection_id)
+  const owOptions: OWOptions = {
+    apihost: process.env.CREATE_WHISK_USER_DEFAULT_HOSTNAME,
+    api_key: nim_auth_key,
+  }
+  const flags: Flags = {
+    verboseBuild: false,
+    verboseZip: false,
+    production: false,
+    incremental: false,
+    yarn: false,
+    env: undefined,
+    webLocal: undefined,
+    include: undefined,
+    exclude: undefined,
+    remoteBuild: false
+  }
+  const cred: Credentials = {
+    namespace: await getCurrentNamespace(fileSystemPersister),
+    ow: owOptions,
+    storageKey: undefined,
+    redis: false
+  }
+  // const pj = require('package.json')
+  const userAgent = 'postman-api/0.0.0'
+  initializeAPI(userAgent)
+  deployProject(projPath, owOptions, cred, fileSystemPersister, flags)
+}
 module.exports = { main }

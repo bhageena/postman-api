@@ -1,28 +1,31 @@
+import { join, resolve } from 'path'
 import { default as Generate } from '@nimbella/postman-api/lib/invoker'
-import { join } from 'path'
-import { runNimCommand } from 'nimbella-cli'
-// import { initializeAPI, Flags, deployProject, readAndPrepare, fileSystemPersister, wipePackage, buildProject, deploy, getCurrentNamespace, Credentials, OWOptions, getCredentialsFromEnvironment } from 'nimbella-deployer'
-
-import { Flags, deployProject, fileSystemPersister, getCredentialsFromEnvironment } from 'nimbella-cli/lib/deployer'
+import { Flags, deployProject, doLogin, fileSystemPersister } from 'nimbella-deployer'
+const { readdir } = require('fs').promises;
 
 async function main(args: any) {
   try {
-    console.log(args);
-    console.log(args.__ow_headers);
-    await nimGenerate(args.collection, args.pm_key)
-    await nimProjectDeploy(args.collection, args.nim_token)
+    await nimGenerate(args.collection, args.pm_api_key)
+    await nimProjectDeploy(args.collection, args.nim_auth_token)
+
+      ; (async () => {
+        for await (const f of getFiles(join(process.cwd(), args.collection))) {
+          console.log(f);
+        }
+      })()
+
   } catch (error) {
     console.error(error)
     return error
   }
 }
 
-async function nimGenerate(collection: string, pm_key: string) {
+async function nimGenerate(collection: string, pm_api_key: string) {
   const generator = new Generate({
     id: collection,
-    key: pm_key,
+    key: pm_api_key,
     language: 'ts',
-    overwrite: false,
+    overwrite: true,
     deploy: false,
     deployForce: false,
     updateSource: false,
@@ -30,19 +33,15 @@ async function nimGenerate(collection: string, pm_key: string) {
     update: false,
     init: false,
   })
-  generator.generate()
+  return await generator.generate()
     .catch((error) => {
       console.log('Oops! Some Error Occurred, Please Try Again')
       console.error(error)
     })
 }
 
-async function nimProjectDeploy(collection_id: string, nim_token: string) {
-  const projPath = join(process.cwd(), collection_id)
-  // const owOptions: OWOptions = {
-  //   apihost: process.env.CREATE_WHISK_USER_DEFAULT_HOSTNAME,
-  //   api_key: nim_auth_key,
-  // }
+async function nimProjectDeploy(collection: string, nim_auth_token: string) {
+  const projPath = join(process.cwd(), collection)
   const flags: Flags = {
     verboseBuild: false,
     verboseZip: false,
@@ -55,32 +54,20 @@ async function nimProjectDeploy(collection_id: string, nim_token: string) {
     exclude: undefined,
     remoteBuild: false
   }
-  // const cred: Credentials = {
-  //   namespace: await getCurrentNamespace(fileSystemPersister),
-  //   ow: owOptions,
-  //   storageKey: undefined,
-  //   redis: false
-  // }
-  // const pj = require('package.json')
-  await loginUsingToken(nim_token)
-  // initializeAPI(userAgent)
-  const cred = getCredentialsFromEnvironment()
-  deployProject(projPath, cred.ow, cred, fileSystemPersister, flags)
+  const cred = await doLogin(nim_auth_token, fileSystemPersister)
+  return await deployProject(projPath, cred.ow, cred, fileSystemPersister, flags)
 }
 
-async function loginUsingToken(token: string) {
-  await runNimCommand('auth/login', [token]);
-}
-async function getNamespace() {
-  try {
-    const res = await runNimCommand('auth/current',[]);
-    return res.captured[0];
-  } catch (e) {
-    console.log('getNamespace Error:', e.message);
-    return { error: e.message };
+async function* getFiles(dir) {
+  const dirents = await readdir(dir, { withFileTypes: true });
+  for (const dirent of dirents) {
+    const res = resolve(dir, dirent.name);
+    if (dirent.isDirectory()) {
+      yield* getFiles(res);
+    } else {
+      yield res;
+    }
   }
 }
 
 module.exports = { main }
- 
-  

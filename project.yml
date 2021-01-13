@@ -4,24 +4,22 @@ bucket:
 packages:
   - name: collections
     actions:
-      - name: create
-        environment: $(POSTMAN_API_KEY)
-      - name: update
-        environment: $(POSTMAN_API_KEY)
-      - name: delete
-        environment: $(POSTMAN_API_KEY)
-      - name: getAll
-        environment: $(POSTMAN_API_KEY)
-      - name: getSingle
-        environment: $(POSTMAN_API_KEY)
-      - name: fork
-        environment: $(POSTMAN_API_KEY)
+      - name: create        
+      - name: update        
+      - name: delete        
+      - name: getAll        
+      - name: getSingle        
+      - name: fork        
       - name: merge
-        environment: $(POSTMAN_API_KEY)
+        
   - name: project
     actions:
-      - name: create
-        environment: $(POSTMAN_API_KEY)
+      - name: create        
         runtime: nodejs:10
       - name: deploy
         runtime: nodejs:10
+      - name: deploy1
+        runtime: nodejs:10
+        limits:
+          timeout: 10000
+          memory: 768

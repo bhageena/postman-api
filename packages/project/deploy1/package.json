@@ -4,8 +4,7 @@
   "description": "Create & Deploy Nimbella Project",
   "main": "index.js",
   "dependencies": {
-    "@nimbella/postman-api": "0.0.2",
-    "nimbella-deployer": "https://preview-apigcp.nimbella.io/nimbella-deployer.tgz"
+    "@nimbella/postman-api": "0.0.0"
   },
   "devDependencies": {
     "@types/handlebars": "4.0.40",

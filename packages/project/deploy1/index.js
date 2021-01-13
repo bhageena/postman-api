@@ -36,46 +36,46 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
-var nimbella_deployer_1 = require("nimbella-deployer");
 var invoker_1 = require("@nimbella/postman-api/lib/invoker");
-var fs_1 = require("fs");
 var path_1 = require("path");
+var nimbella_cli_1 = require("nimbella-cli");
+// import { initializeAPI, Flags, deployProject, readAndPrepare, fileSystemPersister, wipePackage, buildProject, deploy, getCurrentNamespace, Credentials, OWOptions, getCredentialsFromEnvironment } from 'nimbella-deployer'
+var deployer_1 = require("nimbella-cli/lib/deployer");
 function main(args) {
     return __awaiter(this, void 0, void 0, function () {
-        var _a, _b, error_1;
-        return __generator(this, function (_c) {
-            switch (_c.label) {
+        var error_1;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
                 case 0:
-                    _c.trys.push([0, 4, , 5]);
-                    return [4 /*yield*/, nimGenerate(args.collection_id, args.postman_key)];
+                    _a.trys.push([0, 3, , 4]);
+                    console.log(args);
+                    console.log(args.__ow_headers);
+                    return [4 /*yield*/, nimGenerate(args.collection, args.pm_key)];
                 case 1:
-                    _c.sent();
-                    _a = nimProjectDeploy;
-                    _b = [args.collection_id, args.nimbella_key];
-                    return [4 /*yield*/, nimbella_deployer_1.getCurrentNamespace(nimbella_deployer_1.fileSystemPersister)];
-                case 2: return [4 /*yield*/, _a.apply(void 0, _b.concat([_c.sent()]))];
+                    _a.sent();
+                    return [4 /*yield*/, nimProjectDeploy(args.collection, args.nim_token)];
+                case 2:
+                    _a.sent();
+                    return [3 /*break*/, 4];
                 case 3:
-                    _c.sent();
-                    return [3 /*break*/, 5];
-                case 4:
-                    error_1 = _c.sent();
+                    error_1 = _a.sent();
                     console.error(error_1);
                     return [2 /*return*/, error_1];
-                case 5: return [2 /*return*/];
+                case 4: return [2 /*return*/];
             }
         });
     });
 }
-function nimGenerate(collection_id, postman_key) {
+function nimGenerate(collection, pm_key) {
     return __awaiter(this, void 0, void 0, function () {
         var generator;
         return __generator(this, function (_a) {
             generator = new invoker_1["default"]({
-                id: collection_id,
-                key: postman_key,
+                id: collection,
+                key: pm_key,
                 language: 'ts',
                 overwrite: false,
-                deploy: true,
+                deploy: false,
                 deployForce: false,
                 updateSource: false,
                 clientCode: false,
@@ -90,76 +90,13 @@ function nimGenerate(collection_id, postman_key) {
         });
     });
 }
-function nimDeploy(collection_id, nim_auth_key, namespace) {
+function nimProjectDeploy(collection_id, nim_token) {
     return __awaiter(this, void 0, void 0, function () {
-        var prepare, _a, _b, _c, build, deployResponse;
-        return __generator(this, function (_d) {
-            switch (_d.label) {
-                case 0:
-                    _a = nimbella_deployer_1.readAndPrepare;
-                    _b = [path_1.dirname(path_1.join(process.cwd(), collection_id, 'project.yml')),
-                        {}];
-                    _c = {};
-                    return [4 /*yield*/, nimbella_deployer_1.getCurrentNamespace(nimbella_deployer_1.fileSystemPersister)];
-                case 1: return [4 /*yield*/, _a.apply(void 0, _b.concat([(_c.namespace = _d.sent(),
-                            _c.ow = {
-                                apihost: process.env.CREATE_WHISK_USER_DEFAULT_HOSTNAME,
-                                api_key: nim_auth_key
-                            },
-                            _c.storageKey = undefined,
-                            _c.redis = false,
-                            _c), nimbella_deployer_1.fileSystemPersister,
-                        {
-                            verboseBuild: false,
-                            verboseZip: false,
-                            production: false,
-                            incremental: false,
-                            yarn: false,
-                            env: undefined,
-                            webLocal: undefined,
-                            include: undefined,
-                            exclude: undefined,
-                            remoteBuild: false
-                        }, ""]))];
-                case 2:
-                    prepare = _d.sent();
-                    return [4 /*yield*/, nimbella_deployer_1.buildProject(prepare)];
-                case 3:
-                    build = _d.sent();
-                    if (!build) {
-                        Object.assign(process.env, { __OW_NAMESPACE: namespace });
-                        fs_1.existsSync(path_1.join(process.cwd(), collection_id)) && fs_1.rmdirSync(path_1.join(process.cwd(), collection_id), { recursive: true });
-                        throw new Error(collection_id + " Couldn't build project.");
-                    }
-                    return [4 /*yield*/, nimbella_deployer_1.deploy(build)];
-                case 4:
-                    deployResponse = _d.sent();
-                    if (!(deployResponse.failures && deployResponse.failures.length > 0)) return [3 /*break*/, 6];
-                    return [4 /*yield*/, nimbella_deployer_1.wipePackage(collection_id, process.env.CREATE_WHISK_USER_DEFAULT_HOSTNAME, nim_auth_key)];
-                case 5:
-                    _d.sent();
-                    throw new Error(collection_id + " Couldn't deploy.");
-                case 6:
-                    Object.assign(process.env, { __OW_NAMESPACE: namespace });
-                    if (collection_id && fs_1.existsSync(path_1.join(process.cwd(), collection_id))) {
-                        fs_1.rmdirSync(path_1.join(process.cwd(), collection_id), { recursive: true });
-                    }
-                    return [2 /*return*/];
-            }
-        });
-    });
-}
-function nimProjectDeploy(collection_id, nim_auth_key, namespace) {
-    return __awaiter(this, void 0, void 0, function () {
-        var projPath, owOptions, flags, cred, _a, userAgent;
-        return __generator(this, function (_b) {
-            switch (_b.label) {
+        var projPath, flags, cred;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
                 case 0:
                     projPath = path_1.join(process.cwd(), collection_id);
-                    owOptions = {
-                        apihost: process.env.CREATE_WHISK_USER_DEFAULT_HOSTNAME,
-                        api_key: nim_auth_key
-                    };
                     flags = {
                         verboseBuild: false,
                         verboseZip: false,
@@ -172,20 +109,63 @@ function nimProjectDeploy(collection_id, nim_auth_key, namespace) {
                         exclude: undefined,
                         remoteBuild: false
                     };
-                    _a = {};
-                    return [4 /*yield*/, nimbella_deployer_1.getCurrentNamespace(nimbella_deployer_1.fileSystemPersister)];
+                    // const cred: Credentials = {
+                    //   namespace: await getCurrentNamespace(fileSystemPersister),
+                    //   ow: owOptions,
+                    //   storageKey: undefined,
+                    //   redis: false
+                    // }
+                    // const pj = require('package.json')
+                    return [4 /*yield*/, loginUsingToken(nim_token)
+                        // initializeAPI(userAgent)
+                    ];
                 case 1:
-                    cred = (_a.namespace = _b.sent(),
-                        _a.ow = owOptions,
-                        _a.storageKey = undefined,
-                        _a.redis = false,
-                        _a);
-                    userAgent = 'postman-api/0.0.0';
-                    nimbella_deployer_1.initializeAPI(userAgent);
-                    nimbella_deployer_1.deployProject(projPath, owOptions, cred, nimbella_deployer_1.fileSystemPersister, flags);
+                    // const cred: Credentials = {
+                    //   namespace: await getCurrentNamespace(fileSystemPersister),
+                    //   ow: owOptions,
+                    //   storageKey: undefined,
+                    //   redis: false
+                    // }
+                    // const pj = require('package.json')
+                    _a.sent();
+                    cred = deployer_1.getCredentialsFromEnvironment();
+                    deployer_1.deployProject(projPath, cred.ow, cred, deployer_1.fileSystemPersister, flags);
                     return [2 /*return*/];
             }
         });
     });
 }
+function loginUsingToken(token) {
+    return __awaiter(this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, nimbella_cli_1.runNimCommand('auth/login', [token])];
+                case 1:
+                    _a.sent();
+                    return [2 /*return*/];
+            }
+        });
+    });
+}
+function getNamespace() {
+    return __awaiter(this, void 0, void 0, function () {
+        var res, e_1;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 2, , 3]);
+                    return [4 /*yield*/, nimbella_cli_1.runNimCommand('auth/current', [])];
+                case 1:
+                    res = _a.sent();
+                    return [2 /*return*/, res.captured[0]];
+                case 2:
+                    e_1 = _a.sent();
+                    console.log('getNamespace Error:', e_1.message);
+                    return [2 /*return*/, { error: e_1.message }];
+                case 3: return [2 /*return*/];
+            }
+        });
+    });
+}
 module.exports = { main: main };
+ 
